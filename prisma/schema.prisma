@@ -13,15 +13,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Admin {
+model admin {
   id        Int      @id @default(autoincrement())
   name      String?
   email     String   @unique
   password  String
   role      String   @default("editor")
   status    String   @default("active")
+  loginAttempt Int   @default(0)
   profile   String?
-  refreshToken String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
