@@ -3,7 +3,12 @@ import bcrypt from "bcrypt";
 import asyncHandler from "express-async-handler";
 import { validationResult } from "express-validator";
 
-import { checkEmail, generateTokens, refreshTokens } from "../services/authService.js";
+import {
+    checkEmail,
+    generateTokens,
+    getAccessToken,
+    updateAdmin,
+} from "../services/authService.js";
 
 export const login = asyncHandler(async (req, res) => {
     const errors = validationResult(req);
@@ -35,20 +40,21 @@ export const login = asyncHandler(async (req, res) => {
             const adminData = {
                 loginAttempt: 1,
             };
-            result = await updateAdmin(admin?.id, adminData);
+            await updateAdmin(admin.id, adminData);
         } else {
-            if (admin.error >= 2) {
-                const adminData = {
+            let adminData;
+            if (admin.loginAttempt >= 2) {
+                adminData = {
                     status: "freeze",
                 };
             } else {
-                const adminData = {
-                    error: {
+                adminData = {
+                    loginAttempt: {
                         increment: 1,
                     },
                 };
             }
-            result = await updateAdmin(admin.id, adminData);
+            await updateAdmin(admin.id, adminData);
         }
 
         res.status(401);
@@ -60,7 +66,7 @@ export const login = asyncHandler(async (req, res) => {
         const adminData = {
             loginAttempt: 0,
         };
-        result = await updateAdmin(admin?.id, adminData);
+        await updateAdmin(admin.id, adminData);
     }
 
     const { accessToken, refreshToken } = await generateTokens(admin.id);
@@ -78,7 +84,8 @@ export const login = asyncHandler(async (req, res) => {
     });
 });
 
-export const refreshTokens = asyncHandler(async (req, res) => {
+export const handleTokenRefresh = asyncHandler(async (req, res) => {
+    // Get refresh token from cookie
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
@@ -86,9 +93,9 @@ export const refreshTokens = asyncHandler(async (req, res) => {
         throw new Error("Refresh Token not found");
     }
 
-    const accessToken = await refreshTokens(refreshToken);
+    const accessToken = await getAccessToken(refreshToken);
 
     res.status(200).json({
         accessToken,
     });
-}
+});
