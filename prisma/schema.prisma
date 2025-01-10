@@ -23,5 +23,5 @@ model admin {
   loginAttempt Int   @default(0)
   profile   String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 }
