@@ -33,7 +33,7 @@ export const generateTokens = async (adminId) => {
     return { accessToken, refreshToken };
 };
 
-export const refreshTokens = async (refreshToken) => {
+export const getAccessToken = async (refreshToken) => {
     try {
         const admin = jwt.verify(
             refreshToken,
