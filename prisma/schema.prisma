@@ -9,12 +9,12 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
-model admin {
-  id        Int      @id @default(autoincrement())
+model Admin {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
   name      String?
   email     String   @unique
   password  String
@@ -24,4 +24,24 @@ model admin {
   profile   String?
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
+}
+
+model Thutamyay {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  msisdn           String
+  status           String
+  provider         String
+  operationId      String
+  subscribeChannel String
+  amount           Int
+  operationStatus  String
+  foc              Boolean
+  subscribedAt     DateTime
+  unsubscribeAt    DateTime?
+  unsubscribeChannel String?
+  paidAt           DateTime?
+  expiredAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
 }
