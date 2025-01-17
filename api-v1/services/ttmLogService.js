@@ -80,3 +80,84 @@ export const getLogById = async (id) => {
         where: { id }
     });
 };
+
+export const exportLogs = async (query = {}) => {
+    const { 
+        msisdn, status, provider, subscribeChannel, 
+        operationStatus, startDate, endDate, foc 
+    } = query;
+
+    // Build where clause for filtering (same as getLogs)
+    const where = {};
+    if (msisdn) where.msisdn = { contains: msisdn };
+    if (status) where.status = status;
+    if (provider) where.provider = provider;
+    if (subscribeChannel) where.subscribeChannel = subscribeChannel;
+    if (operationStatus) where.operationStatus = operationStatus;
+    if (foc !== undefined) where.foc = foc === 'true';
+    if (startDate || endDate) {
+        where.createdAt = {};
+        if (startDate) where.createdAt.gte = new Date(startDate);
+        if (endDate) where.createdAt.lte = new Date(endDate);
+    }
+
+    // Get all filtered records for export
+    return prisma.thutamyay.findMany({
+        where,
+        orderBy: { createdAt: 'desc' }
+    });
+};
+
+export const bulkUpdateStatus = async (ids, newStatus) => {
+    return prisma.thutamyay.updateMany({
+        where: {
+            id: { in: ids }
+        },
+        data: {
+            status: newStatus,
+            updatedAt: new Date()
+        }
+    });
+};
+
+export const bulkDelete = async (ids) => {
+    return prisma.thutamyay.updateMany({
+        where: {
+            id: { in: ids }
+        },
+        data: {
+            deletedAt: new Date()
+        }
+    });
+};
+
+export const getStats = async (query = {}) => {
+    const { startDate, endDate } = query;
+    const where = {};
+    
+    if (startDate || endDate) {
+        where.createdAt = {};
+        if (startDate) where.createdAt.gte = new Date(startDate);
+        if (endDate) where.createdAt.lte = new Date(endDate);
+    }
+
+    const [totalCount, providerStats, statusStats] = await Promise.all([
+        prisma.thutamyay.count({ where }),
+        prisma.thutamyay.groupBy({
+            by: ['provider'],
+            where,
+            _count: true
+        }),
+        prisma.thutamyay.groupBy({
+            by: ['status'],
+            where,
+            _count: true
+        })
+    ]);
+
+    return {
+        totalCount,
+        byProvider: providerStats,
+        byStatus: statusStats
+    };
+};
