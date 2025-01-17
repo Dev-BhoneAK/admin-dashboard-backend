@@ -11,10 +11,11 @@ import {
 } from "../services/authService.js";
 
 export const login = asyncHandler(async (req, res) => {
+    console.log(req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         res.status(401);
-        throw new Error("Validation failed");
+        throw new Error(errors.array()[0].msg);
     }
 
     const { email, password } = req.body;
