@@ -1,14 +1,22 @@
 import asyncHandler from "express-async-handler";
-import { getLogs, getLogById, exportLogs, bulkUpdateStatus, bulkDelete, getStats } from "../services/ttmLogService.js";
-import { Parser } from 'json2csv';
+import {
+    getLogs,
+    getLogById,
+    getLogsForExport,
+    updateLogsStatus,
+    softDeleteLogs,
+    getStats,
+    createLog,
+} from "../services/ttmLogService.js";
+import { Parser } from "json2csv";
 
 export const fetchLogs = asyncHandler(async (req, res) => {
-    const result = await getLogs(req.query);
+    const result = await getLogs(req.query, req.appName);
     res.json(result);
 });
 
 export const fetchLogById = asyncHandler(async (req, res) => {
-    const log = await getLogById(req.params.id);
+    const log = await getLogById(req.params.id, req.appName);
     if (!log) {
         res.status(404);
         throw new Error("Log not found");
@@ -17,63 +25,50 @@ export const fetchLogById = asyncHandler(async (req, res) => {
 });
 
 export const downloadLogs = asyncHandler(async (req, res) => {
-    const logs = await exportLogs(req.query);
+    const logs = await getLogsForExport(req.query, req.appName);
     
     const fields = [
-        'msisdn',
-        'status',
-        'provider',
-        'operationId',
-        'subscribeChannel',
-        'amount',
-        'operationStatus',
-        'foc',
-        'subscribedAt',
-        'unsubscribeAt',
-        'unsubscribeChannel',
-        'paidAt',
-        'expiredAt',
-        'createdAt'
+        "msisdn",
+        "status",
+        "provider",
+        "operationId",
+        "subscribeChannel",
+        "amount",
+        "operationStatus",
+        "foc",
+        "subscribedAt",
+        "unsubscribeAt",
+        "paidAt",
+        "expiredAt",
+        "createdAt",
     ];
 
     const json2csvParser = new Parser({ fields });
     const csv = json2csvParser.parse(logs);
 
-    res.header('Content-Type', 'text/csv');
-    res.attachment(`thutamyay_logs_${new Date().toISOString()}.csv`);
+    res.header("Content-Type", "text/csv");
+    res.attachment(`logs-${new Date().toISOString()}.csv`);
     res.send(csv);
 });
 
-export const updateLogsStatus = asyncHandler(async (req, res) => {
-    const { ids, status } = req.body;
-    
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        res.status(400);
-        throw new Error("Please provide valid log IDs");
-    }
-
-    if (!status) {
-        res.status(400);
-        throw new Error("Please provide a status");
-    }
-
-    const result = await bulkUpdateStatus(ids, status);
+export const updateLogsStatusBulk = asyncHandler(async (req, res) => {
+    const { ids, newStatus } = req.body;
+    const result = await updateLogsStatus(ids, newStatus, req.appName);
     res.json(result);
 });
 
-export const softDeleteLogs = asyncHandler(async (req, res) => {
+export const softDeleteLogsBulk = asyncHandler(async (req, res) => {
     const { ids } = req.body;
-    
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        res.status(400);
-        throw new Error("Please provide valid log IDs");
-    }
-
-    const result = await bulkDelete(ids);
+    const result = await softDeleteLogs(ids, req.appName);
     res.json(result);
 });
 
 export const fetchStats = asyncHandler(async (req, res) => {
-    const stats = await getStats(req.query);
+    const stats = await getStats(req.query, req.appName);
     res.json(stats);
+});
+
+export const insertLog = asyncHandler(async (req, res) => {
+    const log = await createLog(req.body, req.appName);
+    res.status(201).json(log);
 });

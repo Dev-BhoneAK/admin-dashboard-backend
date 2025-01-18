@@ -1,7 +1,6 @@
 import "dotenv/config";
 import bcrypt from "bcrypt";
 import asyncHandler from "express-async-handler";
-import { validationResult } from "express-validator";
 
 import {
     checkEmail,
@@ -11,13 +10,6 @@ import {
 } from "../services/authService.js";
 
 export const login = asyncHandler(async (req, res) => {
-    console.log(req.body);
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        res.status(401);
-        throw new Error(errors.array()[0].msg);
-    }
-
     const { email, password } = req.body;
     const admin = await checkEmail(email);
 
