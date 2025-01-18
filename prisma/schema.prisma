@@ -4,30 +4,59 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 model Admin {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  name      String?
-  email     String   @unique
-  password  String
-  role      String   @default("editor")
-  status    String   @default("active")
-  loginAttempt Int   @default(0)
-  profile   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  name         String?
+  email        String    @unique
+  password     String
+  role         String    @default("editor")
+  status       String    @default("active")
+  loginAttempt Int       @default(0)
+  profile      String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
+}
+
+model App {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String    @unique
+  apiKey      String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
 }
 
 model Thutamyay {
-  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  msisdn           String
+  status           String
+  provider         String
+  operationId      String
+  subscribeChannel String
+  amount           Int
+  operationStatus  String
+  foc              Boolean
+  subscribedAt     DateTime
+  unsubscribeAt    DateTime?
+  unsubscribeChannel String?
+  paidAt           DateTime?
+  expiredAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+}
+
+model Tayplus {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
   msisdn           String
   status           String
   provider         String
