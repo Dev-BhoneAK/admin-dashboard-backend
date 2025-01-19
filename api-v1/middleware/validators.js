@@ -5,7 +5,7 @@ import {
     providers,
     subscribeChannels,
     operationStatuses,
-} from "./config.js";
+} from "../config/index.js";
 
 export const loginValidator = [
     body("email", "Please include a valid email").isEmail(),
