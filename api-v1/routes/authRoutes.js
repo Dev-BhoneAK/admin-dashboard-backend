@@ -1,11 +1,11 @@
 import express from "express";
-import { login, refreshToken } from "../controllers/authController.js";
+import { login } from "../controllers/authController.js";
 import { loginValidator } from "../middleware/validators.js";
 import { validateRequest } from "../middleware/validateRequest.js";
 
 const router = express.Router();
 
 router.post("/login", loginValidator, validateRequest, login);
-router.post("/refresh", refreshToken);
+// router.post("/refresh", refreshToken);
 
 export default router;
