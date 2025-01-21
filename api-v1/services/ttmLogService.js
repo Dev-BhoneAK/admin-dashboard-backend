@@ -4,13 +4,32 @@ const prisma = new PrismaClient();
 const getModelByAppName = (appName) => {
     const models = {
         thutamyay: prisma.thutamyay,
-        tayplus: prisma.tayplus
+        tayplus: prisma.tayplus,
     };
     return models[appName.toLowerCase()];
 };
 
+const formatDateFields = (data) => {
+    const dateFields = ["subscribedAt", "unsubscribeAt", "paidAt", "expiredAt"];
+    const formattedData = { ...data };
+
+    dateFields.forEach((field) => {
+        if (formattedData[field]) {
+            try {
+                // Ensure proper ISO format with timezone
+                formattedData[field] = new Date(formattedData[field]).toISOString();
+            } catch (error) {
+                console.error(`Invalid date for ${field}:`, formattedData[field]);
+                formattedData[field] = null;
+            }
+        }
+    });
+
+    return formattedData;
+};
+
 export const getLogs = async (query = {}, appName) => {
-    const { 
+    const {
         page = 1,
         limit = 10,
         sortBy = "createdAt",
@@ -187,32 +206,17 @@ export const getStats = async (query = {}, appName) => {
 };
 
 export const createLog = async (logData, appName) => {
-    if (!appName) {
-        throw new Error("App name is required");
-    }
-
     const model = getModelByAppName(appName);
     if (!model) {
-        throw new Error(`Invalid app name: ${appName}`);
+        throw new Error("Invalid app name");
     }
 
-    // Format dates if they're provided as strings
-    const dateFields = [
-        "subscribedAt",
-        "unsubscribeAt",
-        "paidAt",
-        "expiredAt",
-    ];
-    dateFields.forEach((field) => {
-        if (logData[field] && typeof logData[field] === "string") {
-            logData[field] = new Date(logData[field]);
-        }
-    });
+    // Format dates if they're provided
+    const formattedData = formatDateFields(logData);
 
-    // Set default values
     const data = {
-        ...logData,
-        foc: logData.foc || false,
+        ...formattedData,
+        foc: formattedData.foc || false,
         createdAt: new Date(),
         updatedAt: new Date(),
     };
@@ -220,6 +224,10 @@ export const createLog = async (logData, appName) => {
     try {
         return await model.create({ data });
     } catch (error) {
+        if (error.code === "P2002") {
+            throw new Error("Duplicate operation ID");
+        }
+        console.error("Error creating log:", error);
         throw error;
     }
 };
