@@ -16,7 +16,8 @@ const app = express();
 app.use(helmet());
 app.use(rateLimiter);
 app.use(cors());
-app.use(express.urlencoded({ extended: false })); // Parse URL-encoded to req.body
+app.use(express.json()); // Parse JSON bodies
+app.use(express.urlencoded({ extended: true })); // For parsing URL-encoded bodies
 app.use(compression());
 if (process.env.NODE_ENV === "production") {
     app.use(logger("combined")); // Detailed logs with more info (IP, user-agent, etc.)
