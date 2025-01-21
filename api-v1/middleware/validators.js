@@ -18,11 +18,7 @@ export const loginValidator = [
 ];
 
 export const logCreateValidator = [
-    body("msisdn")
-        .notEmpty()
-        .withMessage("MSISDN is required")
-        .matches(/^[0-9]{6,10}$/)
-        .withMessage("Invalid MSISDN format"),
+    body("msisdn").notEmpty().withMessage("MSISDN is required"),
 
     body("status")
         .notEmpty()
@@ -64,22 +60,22 @@ export const logCreateValidator = [
     body("foc").optional().isBoolean().withMessage("FOC must be boolean"),
 
     body("subscribedAt")
-        .optional()
+        .if(body("status").equals("subscribe"))
         .isISO8601()
         .withMessage("Invalid subscribed date format"),
 
     body("unsubscribeAt")
-        .optional()
+        .if(body("status").equals("unsubscribe"))
         .isISO8601()
         .withMessage("Invalid unsubscribe date format"),
 
     body("paidAt")
-        .optional()
+        .if(body("status").equals("renew"))
         .isISO8601()
         .withMessage("Invalid paid date format"),
 
     body("expiredAt")
-        .optional()
+        .if(body("status").equals("renew"))
         .isISO8601()
         .withMessage("Invalid expired date format"),
 
