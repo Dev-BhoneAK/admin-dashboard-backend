@@ -9,24 +9,29 @@ const getModelByAppName = (appName) => {
     return models[appName.toLowerCase()];
 };
 
-const formatDateFields = (data) => {
-    const dateFields = ["subscribedAt", "unsubscribeAt", "paidAt", "expiredAt"];
-    const formattedData = { ...data };
+// const formatDateFields = (data) => {
+//     const dateFields = ["subscribedAt", "unsubscribeAt", "paidAt", "expiredAt"];
+//     const formattedData = { ...data };
 
-    dateFields.forEach((field) => {
-        if (formattedData[field]) {
-            try {
-                // Ensure proper ISO format with timezone
-                formattedData[field] = new Date(formattedData[field]).toISOString();
-            } catch (error) {
-                console.error(`Invalid date for ${field}:`, formattedData[field]);
-                formattedData[field] = null;
-            }
-        }
-    });
+//     dateFields.forEach((field) => {
+//         if (formattedData[field]) {
+//             try {
+//                 // Ensure proper ISO format with timezone
+//                 formattedData[field] = new Date(
+//                     formattedData[field]
+//                 ).toISOString();
+//             } catch (error) {
+//                 console.error(
+//                     `Invalid date for ${field}:`,
+//                     formattedData[field]
+//                 );
+//                 formattedData[field] = null;
+//             }
+//         }
+//     });
 
-    return formattedData;
-};
+//     return formattedData;
+// };
 
 export const getLogs = async (query = {}, appName) => {
     const {
@@ -205,18 +210,47 @@ export const getStats = async (query = {}, appName) => {
     };
 };
 
+const checkRecentLog = async (model, { msisdn, status, provider }) => {
+    const oneHourAgo = new Date();
+    oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+
+    const recentLog = await model.findFirst({
+        where: {
+            msisdn,
+            status,
+            provider,
+            createdAt: {
+                gte: oneHourAgo
+            }
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    });
+
+    return recentLog;
+};
+
 export const createLog = async (logData, appName) => {
     const model = getModelByAppName(appName);
     if (!model) {
         throw new Error("Invalid app name");
     }
 
-    // Format dates if they're provided
-    const formattedData = formatDateFields(logData);
+    // Check for recent log
+    const recentLog = await checkRecentLog(model, {
+        msisdn: logData.msisdn,
+        status: logData.status,
+        provider: logData.provider
+    });
+
+    if (recentLog) {
+        throw new Error("Similar log exists within the last hour");
+    }
 
     const data = {
-        ...formattedData,
-        foc: formattedData.foc || false,
+        ...logData,
+        foc: logData.foc || false,
         createdAt: new Date(),
         updatedAt: new Date(),
     };
