@@ -61,6 +61,14 @@ export const getAppByApiKeyAndName = async (apiKey, name) => {
     });
 };
 
+export const findAppByApiKey = async (apiKey) => {
+    return prisma.app.findFirst({
+        where: {
+            apiKey,
+        },
+    });
+};
+
 export const updateApp = async (id, data) => {
     return prisma.app.update({
         where: { id },
