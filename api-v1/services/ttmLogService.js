@@ -220,12 +220,12 @@ const checkRecentLog = async (model, { msisdn, status, provider }) => {
             status,
             provider,
             createdAt: {
-                gte: oneHourAgo
-            }
+                gte: oneHourAgo,
+            },
         },
         orderBy: {
-            createdAt: 'desc'
-        }
+            createdAt: "desc",
+        },
     });
 
     return recentLog;
@@ -241,11 +241,11 @@ export const createLog = async (logData, appName) => {
     const recentLog = await checkRecentLog(model, {
         msisdn: logData.msisdn,
         status: logData.status,
-        provider: logData.provider
+        provider: logData.provider,
     });
 
     if (recentLog) {
-        throw new Error("Similar log exists within the last hour");
+        throw new Error("Similar log exists");
     }
 
     const data = {
